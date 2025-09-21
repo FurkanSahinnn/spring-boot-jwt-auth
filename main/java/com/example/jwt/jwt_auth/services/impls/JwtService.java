@@ -82,7 +82,7 @@ public class JwtService {
     public List<String> extractRoles(String token) {
         Claims c = extractAllClaims(stripBearer(token));
         Object val = c.get("roles");
-        // JSON array -> List<String> (jackson map’i genelde List<?> döner)
+        // JSON array -> List<String>
         if (val instanceof List<?> list) {
             return list.stream().map(String::valueOf).toList();
         }
