@@ -41,6 +41,16 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public User findUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->  new BaseException(
+                        new ErrorDetail(MessageType.NO_RECORD_EXIST, username)
+                ));
+        return user;
+    }
+
+
+    @Override
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() ->  new BaseException(

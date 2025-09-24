@@ -1,10 +1,14 @@
 package com.example.jwt.jwt_auth.services.impls;
 
+import com.example.jwt.jwt_auth.entities.RefreshToken;
+import com.example.jwt.jwt_auth.entities.User;
+import com.example.jwt.jwt_auth.services.IRefreshTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -14,6 +18,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -25,6 +30,9 @@ public class JwtService {
     @Value("${jwt.expiration:18000000}") // Default 5 min (ms).
     private Long expirationMs;
 
+    @Autowired
+    private IRefreshTokenService refreshTokenService;
+
     public String generateToken(UserDetails userDetails) {
         // Convert to Authorities from  String list.
         List<String> roles = userDetails.getAuthorities().stream()
@@ -33,6 +41,17 @@ public class JwtService {
 
         Map<String, Object> claims = Map.of("roles", roles);
         return createToken(claims, userDetails.getUsername());
+    }
+
+    public RefreshToken generateRefreshToken(User user) {
+        Date now = new Date();
+        Date exp = new Date(now.getTime() + expirationMs);
+
+        return RefreshToken.builder()
+                .refreshToken(UUID.randomUUID().toString())
+                .expireDate(exp)
+                .user(user)
+                .build();
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -96,7 +115,7 @@ public class JwtService {
         return token;
     }
 
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
